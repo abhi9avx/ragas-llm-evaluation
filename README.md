@@ -69,6 +69,10 @@ Test3_framework.py Context Recall Score: MetricResult(value=1.0)
 
 ![RAG LLM Architecture with Ragas Evaluation Flow](https://raw.githubusercontent.com/abhi9avx/ragas-llm-evaluation/master/docs/ragas_metrics_architecture.png)
 
+> **📖 For detailed HLD/LLD diagrams with Mermaid:** See [ARCHITECTURE.md](ARCHITECTURE.md)
+> 
+> Includes complete flowcharts, class diagrams, and sequence diagrams for all metrics!
+
 ### Understanding the RAG Pipeline
 
 A typical RAG (Retrieval-Augmented Generation) system has **3 main phases**:
