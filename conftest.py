@@ -1,0 +1,20 @@
+import os
+import pytest
+import warnings
+from ragas import SingleTurnSample
+from ragas.metrics.collections import ContextRecall
+from ragas.llms import llm_factory
+from openai import AsyncOpenAI
+import requests
+
+@pytest.fixture
+def llm_wrapper():
+    apikey = os.getenv("OPENAI_API_KEY")
+    if not apikey:
+        raise ValueError("OPENAI_API_KEY environment variable not set")
+    
+    client = AsyncOpenAI(api_key=apikey)
+    llm = llm_factory("gpt-4o", client=client)
+    return llm
+    
+

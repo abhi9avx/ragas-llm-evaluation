@@ -1,0 +1,40 @@
+{
+    "How many articles are there in the selenium webdriver python course ?": {
+        "answer": "There are **23 articles** in the Selenium WebDriver Python course.",
+        "retrieved_docs": [
+            {
+                "file_name": "Selenium Webdriver with PYTHON from Scratch + Frameworks.docx",
+                "page_content": "Complete Understanding on Selenium Python API Methods with real time Scenarios on LIVE Websites\n\"Last but not least\" you can clear any Interview and can Lead Entire Selenium Python Projects from Design Stage\nThis course includes:\n17.5 hours on-demand video\nAssignments\n23 articles\n9 downloadable resources\nAccess on mobile and TV\nCertificate of completion\nRequirements"
+            },
+            {
+                "file_name": "Cypress -Modern Automation Testing from Scratch + Frameworks.docx",
+                "page_content": "Wish you all the Best! See you all in the course with above topics :)\n\nWho this course is for:\nAutomation Engineers\nSoftware Engineers\nManual testers\nSoftware developers"
+            },
+            {
+                "file_name": "Selenium Webdriver with PYTHON from Scratch + Frameworks.docx",
+                "page_content": "What you'll learn\nAt the end of this course, You will get complete knowledge on Python Automation using Selenium WebDriver\nYou will be able to implement Python Test Automation Frameworks from Scratch with all latest Technlogies\nComplete Understanding of Python Basics with many practise Examples to gain a solid exposure\nYou will be learning Python Unit Test Frameworks like PyTest which will helpful for Unit and Integration Testing"
+            },
+            {
+                "file_name": "Selenium Webdriver with PYTHON from Scratch + Frameworks.docx",
+                "page_content": "Advanced Selenium User interactions\nEnd to end Practise Examples to Automate\nPyTest - Unit Testing Framework\nPyTest Fixtures\nPyTest Parameterization\nPyTest Annotations, Command Line Arguments\nPython PyTest Reports\nLog4J Logging Python\nPage object Model Design Pattern\nEnd to end Framework design from scratch\nPython Data driven Framework using Excel\nPyxl Examples with Selenium Integration\nJenkins CI Integration\nGITHUB Version control Management\nAll the Best! Happy Testing :)"
+            }
+        ]
+    },
+    "WHAT ARE THE REQUIREMNET OF THE COURCES ?": {
+        "answer": "The course is designed for Automation Engineers, Software Engineers, Manual testers, and Software developers",
+        "retrieved_docs": [
+            {
+                "file_name": "Selenium Webdriver with PYTHON from Scratch + Frameworks.docx",
+                "page_content": "Who this course is for: Automation Engineers, Software Engineers, Manual testers, Software developers"
+            },
+            {
+                "file_name": "Selenium Webdriver with PYTHON from Scratch + Frameworks.docx",
+                "page_content": "Requirements\nBasic understanding of programming concepts\nComputer with internet connection\nNo prior experience with Python or Selenium required"
+            },
+            {
+                "file_name": "Selenium Webdriver with PYTHON from Scratch + Frameworks.docx",
+                "page_content": "Complete Understanding on Selenium Python API Methods with real time Scenarios on LIVE Websites\n\"Last but not least\" you can clear any Interview and can Lead Entire Selenium Python Projects from Design Stage"
+            }
+        ]
+    }
+}
