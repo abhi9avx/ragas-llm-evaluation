@@ -85,11 +85,11 @@ graph TD
     
     E -->|Calculate| F[Precision Score<br/>2 of 4 relevant]
     
-    style D1 fill:#90EE90,stroke:#333,stroke-width:2px
-    style D2 fill:#FFB6C1,stroke:#333,stroke-width:2px
-    style D3 fill:#90EE90,stroke:#333,stroke-width:2px
-    style D4 fill:#FFB6C1,stroke:#333,stroke-width:2px
-    style F fill:#FFD700,stroke:#333,stroke-width:3px
+    style D1 fill:#90EE90,stroke:#333,stroke-width:2px,color:#000
+    style D2 fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
+    style D3 fill:#90EE90,stroke:#333,stroke-width:2px,color:#000
+    style D4 fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
+    style F fill:#FFD700,stroke:#333,stroke-width:3px,color:#000
 ```
 
 ### Low-Level Design (LLD)
@@ -166,10 +166,10 @@ graph TD
     
     E -->|Check Coverage| F[Recall Score<br/>2 of 3 found]
     
-    style R1 fill:#90EE90,stroke:#333,stroke-width:2px
-    style R2 fill:#90EE90,stroke:#333,stroke-width:2px
-    style R3 fill:#FFB6C1,stroke:#333,stroke-width:2px
-    style F fill:#4ECDC4,stroke:#333,stroke-width:3px
+    style R1 fill:#90EE90,stroke:#333,stroke-width:2px,color:#000
+    style R2 fill:#90EE90,stroke:#333,stroke-width:2px,color:#000
+    style R3 fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
+    style F fill:#4ECDC4,stroke:#333,stroke-width:3px,color:#000
 ```
 
 ### Low-Level Design (LLD)
@@ -260,10 +260,10 @@ graph TD
     G2 --> H
     G3 --> H
     
-    style G1 fill:#90EE90,stroke:#333,stroke-width:2px
-    style G2 fill:#FFB6C1,stroke:#333,stroke-width:2px
-    style G3 fill:#FFB6C1,stroke:#333,stroke-width:2px
-    style H fill:#FF6B6B,stroke:#333,stroke-width:3px
+    style G1 fill:#90EE90,stroke:#333,stroke-width:2px,color:#000
+    style G2 fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
+    style G3 fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
+    style H fill:#FF6B6B,stroke:#333,stroke-width:3px,color:#000
 ```
 
 ### Low-Level Design (LLD)
@@ -341,8 +341,8 @@ graph TD
     C -->|Direct Answer| E[Relevance Score 1.0<br/>On topic]
     D -->|Off-topic| F[Relevance Score 0.2<br/>Not relevant]
     
-    style E fill:#90EE90,stroke:#333,stroke-width:3px
-    style F fill:#FFB6C1,stroke:#333,stroke-width:3px
+    style E fill:#90EE90,stroke:#333,stroke-width:3px,color:#000
+    style F fill:#FFB6C1,stroke:#333,stroke-width:3px,color:#000
 ```
 
 ### Low-Level Design (LLD)
@@ -425,9 +425,9 @@ graph TD
     D -->|Wrong Number| G[Correctness 0.0<br/>Factually incorrect]
     E -->|Semantic Match| H[Correctness 1.0<br/>Same meaning]
     
-    style F fill:#90EE90,stroke:#333,stroke-width:3px
-    style G fill:#FF6B6B,stroke:#333,stroke-width:3px
-    style H fill:#90EE90,stroke:#333,stroke-width:3px
+    style F fill:#90EE90,stroke:#333,stroke-width:3px,color:#000
+    style G fill:#FF6B6B,stroke:#333,stroke-width:3px,color:#000
+    style H fill:#90EE90,stroke:#333,stroke-width:3px,color:#000
 ```
 
 ### Low-Level Design (LLD)
@@ -527,7 +527,7 @@ graph TD
     
     style C fill:#2496ED,stroke:#333,stroke-width:2px,color:white
     style E fill:#8E75B2,stroke:#333,stroke-width:2px,color:white
-    style R fill:#FFD700,stroke:#333,stroke-width:3px
+    style R fill:#FFD700,stroke:#333,stroke-width:3px,color:#000
 ```
 
 ---
