@@ -62,7 +62,7 @@ Context Precision measures the proportion of retrieved documents that are actual
 
 ```mermaid
 graph TD
-    A[User Query: "How many articles?"] -->|1. Embed| B[Query Vector]
+    A[User Query] -->|1. Embed| B[Query Vector]
     B -->|2. Similarity Search| C[(Vector DB)]
     C -->|3. Return Top-K| D[Retrieved Docs]
     
