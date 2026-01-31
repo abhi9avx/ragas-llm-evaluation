@@ -65,12 +65,13 @@ Test3_framework.py Context Recall Score: MetricResult(value=1.0)
 
 ## ✨ Features
 
-- ✅ **Multiple Ragas Metrics** - Context Precision, Context Recall, and more
+- ✅ **Multiple Ragas Metrics** - Context Precision, Context Recall, Faithfulness, and more
 - 🔄 **Parameterized Testing** - Test multiple queries with a single test function
 - 📁 **Local Test Data** - Fallback to JSON test data when API is unavailable
 - 🔐 **Secure** - API keys managed via environment variables
 - 🎨 **Clean Architecture** - Modular design with reusable utilities
 - 📊 **Detailed Reporting** - Clear test output with scores
+- 🛡️ **Hallucination Detection** - Faithfulness metric catches unsupported claims
 
 ---
 
@@ -171,6 +172,68 @@ testdata/Test3_framework.json (test queries & expected data)
 
 ---
 
+### ✨ Test 4: Faithfulness Metric
+
+**File:** `Test4.py` | **Status:** ✅ Works with Local Data
+
+**What it does:**
+- Measures if the LLM's response is factually grounded in the retrieved context
+- Uses `Faithfulness` metric from Ragas
+- Detects hallucinations and unsupported claims
+- Ensures responses don't make up information
+
+**How to run:**
+```bash
+export OPENAI_API_KEY="your-key-here"
+pytest -s Test4.py
+```
+
+**Example:**
+```python
+Query: "How many articles are there in the selenium webdriver python course?"
+Response: "There are 23 articles in the Selenium WebDriver Python course."
+Context: "This course includes: 17.5 hours on-demand video, Assignments, 23 articles..."
+Score: 1.0 (perfect) - Response is fully supported by context
+```
+
+**How Faithfulness Works:**
+
+The Faithfulness metric evaluates whether the LLM's response contains only information that can be verified from the retrieved context. Here's the process:
+
+1. **Statement Extraction**: Breaks down the response into individual claims/statements
+2. **Verification**: Checks each statement against the retrieved context
+3. **Scoring**: Calculates the ratio of supported statements to total statements
+
+**Score Interpretation:**
+- **1.0** = Perfect faithfulness - All statements are grounded in context
+- **0.8-0.9** = High faithfulness - Most statements supported, minor issues
+- **0.5-0.7** = Moderate faithfulness - Some hallucinations present
+- **< 0.5** = Low faithfulness - Significant hallucinations or unsupported claims
+
+**Why it matters:**
+- **Prevents Hallucinations** - Catches when LLM makes up information
+- **Builds Trust** - Ensures responses are factually grounded
+- **Quality Assurance** - Validates RAG system reliability
+- **Production Safety** - Critical for customer-facing applications
+
+**Real-World Example:**
+
+❌ **Bad (Low Faithfulness):**
+```
+Context: "Course includes 23 articles"
+Response: "The course has 23 articles and was created in 2020 by John Doe"
+Score: 0.33 (only 1 of 3 claims supported)
+```
+
+✅ **Good (High Faithfulness):**
+```
+Context: "Course includes 23 articles"
+Response: "There are 23 articles in this course"
+Score: 1.0 (all claims supported)
+```
+
+---
+
 ## 📊 Understanding the Metrics
 
 ### Context Precision
@@ -187,6 +250,13 @@ testdata/Test3_framework.json (test queries & expected data)
 - **Higher is Better:** 1.0 = all required info retrieved
 - **Use Case:** Ensure completeness of retrieved context
 
+### Faithfulness
+> **Question:** Is the response grounded in the retrieved context?
+
+- **Score Range:** 0.0 to 1.0
+- **Higher is Better:** 1.0 = no hallucinations, fully grounded
+- **Use Case:** Prevent LLM from making up information
+
 ---
 
 ## 🏗️ Project Structure
@@ -196,16 +266,17 @@ ragas-llm-evaluation/
 ├── Test1.py                    # Context Precision test
 ├── Test2.py                    # Context Recall test
 ├── Test3_framework.py          # Parameterized framework test
+├── Test4.py                    # Faithfulness test
 ├── conftest.py                 # Pytest fixtures (LLM wrapper)
 ├── utils.py                    # Utility functions
 ├── testdata/
-│   └── Test3_framework.json    # Test data for framework tests
+│   ├── Test3_framework.json    # Test data for framework tests
+│   └── Test4.json              # Test data for faithfulness test
 ├── .env.example                # Environment variable template
 ├── .gitignore                  # Git ignore rules
 ├── requirements.txt            # Python dependencies
 ├── README.md                   # This file
-├── SECURITY.md                 # Security checklist
-└── HOW_TO_RUN.md              # Detailed run instructions
+└── run_tests.sh                # Test runner script
 ```
 
 ---
@@ -319,6 +390,6 @@ MIT License - feel free to use this project for learning and production!
 
 **⭐ Star this repo if you find it helpful!**
 
-Made with ❤️ for the LLM community
+Made with ❤️ by [Abhinav](https://github.com/abhi9avx) for the LLM community
 
 </div>
