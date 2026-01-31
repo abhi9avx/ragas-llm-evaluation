@@ -63,6 +63,215 @@ Test3_framework.py Context Recall Score: MetricResult(value=1.0)
 
 ---
 
+## 🏗️ RAG Architecture & Ragas Metrics - Complete Guide
+
+### High-Level Design
+
+![RAG LLM Architecture with Ragas Evaluation Flow](https://raw.githubusercontent.com/abhi9avx/ragas-llm-evaluation/master/docs/ragas_metrics_architecture.png)
+
+### Understanding the RAG Pipeline
+
+A typical RAG (Retrieval-Augmented Generation) system has **3 main phases**:
+
+#### 1️⃣ **Data Ingestion Phase** (Top Section)
+```
+Proprietary Data → Embedding Model → Vector Database (Store)
+```
+
+**What happens:**
+- Your documents/data are converted into vector embeddings
+- These embeddings are stored in a vector database for fast retrieval
+- This is a one-time setup process
+
+**No metrics here** - This is just data preparation
+
+---
+
+#### 2️⃣ **Query Phase** (Middle Section)
+```
+User Question → Embedding Model → Vector Database (Search) → Top K Documents
+```
+
+**What happens:**
+- User asks a question
+- Question is converted to vector embedding
+- Vector database searches for most similar documents
+- Returns Top K most relevant documents
+
+**📊 Metrics Evaluated Here:**
+
+##### 🎯 **Context Precision**
+> **Question:** Are the retrieved documents actually relevant to the question?
+
+**Location in Pipeline:** Vector Database → Retrieved Documents
+
+**What it measures:**
+- How many of the retrieved documents are actually useful
+- Filters out noise and irrelevant context
+- Ensures quality over quantity
+
+**Example:**
+```
+Question: "How many articles in the course?"
+Retrieved Docs:
+  ✅ Doc 1: "Course includes 23 articles" → RELEVANT
+  ❌ Doc 2: "Payment methods accepted" → IRRELEVANT
+  ✅ Doc 3: "Article topics covered" → RELEVANT
+
+Context Precision = 2/3 = 0.67
+```
+
+**Why it matters:** Low precision means your RAG system is adding noise, making the LLM's job harder and potentially leading to wrong answers.
+
+---
+
+##### 🔍 **Context Recall**
+> **Question:** Did we retrieve ALL the necessary information?
+
+**Location in Pipeline:** Ground Truth ← → Retrieved Documents
+
+**What it measures:**
+- Compares retrieved documents against the ground truth answer
+- Checks if all facts needed to answer are present
+- Ensures completeness of retrieval
+
+**Example:**
+```
+Question: "What's included in the course?"
+Ground Truth: "23 articles, 9 resources, certificate"
+
+Retrieved Context contains:
+  ✅ "23 articles" → FOUND
+  ✅ "9 resources" → FOUND
+  ❌ "certificate" → MISSING
+
+Context Recall = 2/3 = 0.67
+```
+
+**Why it matters:** Low recall means your RAG system is missing important information, leading to incomplete answers.
+
+---
+
+#### 3️⃣ **Generation Phase** (Bottom Section)
+```
+Prompt (Question + Context) → LLM → Answer
+```
+
+**What happens:**
+- Retrieved context is combined with the original question
+- This combined prompt is sent to the LLM
+- LLM generates a response based on the context
+
+**📊 Metrics Evaluated Here:**
+
+##### ✨ **Faithfulness**
+> **Question:** Is the answer grounded in the retrieved context?
+
+**Location in Pipeline:** Retrieved Context → LLM → Answer
+
+**What it measures:**
+- Every statement in the answer must be verifiable from the context
+- Detects hallucinations (made-up information)
+- Ensures the LLM doesn't add unsupported claims
+
+**How it works:**
+1. Breaks answer into individual statements
+2. Checks each statement against retrieved context
+3. Calculates: (Supported Statements) / (Total Statements)
+
+**Example:**
+```
+Context: "Course has 23 articles"
+Answer: "The course has 23 articles and was created in 2020"
+
+Statements:
+  ✅ "course has 23 articles" → SUPPORTED
+  ❌ "created in 2020" → NOT IN CONTEXT (Hallucination!)
+
+Faithfulness = 1/2 = 0.5 (Poor!)
+```
+
+**Why it matters:** This is your hallucination detector. Low faithfulness means the LLM is making things up!
+
+---
+
+##### 💬 **Response Relevance** (Not implemented yet)
+> **Question:** Does the answer actually address the user's question?
+
+**Location in Pipeline:** User Question → Answer
+
+**What it measures:**
+- How well the answer addresses the original question
+- Checks if the response is on-topic
+- Ensures the LLM didn't go off on a tangent
+
+**Example:**
+```
+Question: "How many articles?"
+Answer: "The course is great and has many features" → LOW RELEVANCE
+Answer: "There are 23 articles" → HIGH RELEVANCE
+```
+
+---
+
+##### ✅ **Factual Correctness** (Not implemented yet)
+> **Question:** Is the answer factually correct compared to ground truth?
+
+**Location in Pipeline:** Ground Truth → Answer
+
+**What it measures:**
+- Compares the generated answer with the known correct answer
+- Checks factual accuracy
+- Validates the entire RAG pipeline
+
+**Example:**
+```
+Ground Truth: "23 articles"
+Answer: "There are 28 articles" → INCORRECT (Score: 0)
+Answer: "There are 23 articles" → CORRECT (Score: 1.0)
+```
+
+---
+
+### 📊 Metrics Summary Table
+
+| Metric | Phase | What It Measures | Implemented |
+|--------|-------|------------------|-------------|
+| **Context Precision** | Retrieval | Relevance of retrieved docs | ✅ Test1.py |
+| **Context Recall** | Retrieval | Completeness of retrieval | ✅ Test2.py, Test3.py |
+| **Faithfulness** | Generation | Groundedness in context | ✅ Test4.py |
+| **Response Relevance** | Generation | Answer addresses question | ❌ Coming soon |
+| **Factual Correctness** | End-to-End | Accuracy vs ground truth | ❌ Coming soon |
+
+---
+
+### 🎯 How Metrics Work Together
+
+```
+Good RAG System = High Precision + High Recall + High Faithfulness
+
+Context Precision (0.9) → Retrieved mostly relevant docs
+        ↓
+Context Recall (0.9) → Got all necessary information
+        ↓
+Faithfulness (1.0) → LLM didn't hallucinate
+        ↓
+Result: Accurate, complete, trustworthy answer!
+```
+
+**Bad Example:**
+```
+Context Precision (0.3) → Lots of irrelevant docs retrieved
+        ↓
+Context Recall (0.5) → Missing key information
+        ↓
+Faithfulness (0.6) → LLM hallucinated to fill gaps
+        ↓
+Result: Wrong answer with made-up facts!
+```
+
+---
+
 ## ✨ Features
 
 - ✅ **Multiple Ragas Metrics** - Context Precision, Context Recall, Faithfulness, and more
