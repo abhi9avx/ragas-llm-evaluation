@@ -67,10 +67,10 @@ graph TD
     C -->|3. Return Top-K| D[Retrieved Docs]
     
     subgraph Retrieved_Documents
-        D1["Doc 1: Course has 23 articles ✅"]
-        D2["Doc 2: Payment methods ❌"]
-        D3["Doc 3: Article topics ✅"]
-        D4["Doc 4: Instructor bio ❌"]
+        D1[Doc 1: Course has 23 articles]
+        D2[Doc 2: Payment methods]
+        D3[Doc 3: Article topics]
+        D4[Doc 4: Instructor bio]
     end
     
     D --> D1
@@ -83,7 +83,7 @@ graph TD
     D3 -->|Relevant| E
     D4 -->|Irrelevant| E
     
-    E -->|Calculate| F["Precision = Relevant/Total<br/>= 2/4 = 0.5"]
+    E -->|Calculate| F[Precision Score<br/>2 of 4 relevant]
     
     style D1 fill:#90EE90,stroke:#333,stroke-width:2px
     style D2 fill:#FFB6C1,stroke:#333,stroke-width:2px
@@ -146,13 +146,13 @@ Context Recall measures whether all the information needed to answer the questio
 
 ```mermaid
 graph TD
-    A[User Query: "What's included?"] -->|Retrieve| B[Retrieved Context]
-    C[Ground Truth: "23 articles, 9 resources, certificate"] 
+    A[User Query] -->|Retrieve| B[Retrieved Context]
+    C[Ground Truth] 
     
     subgraph Retrieved_Context
-        R1["✅ Found: 23 articles"]
-        R2["✅ Found: 9 resources"]
-        R3["❌ Missing: certificate"]
+        R1[Found: 23 articles]
+        R2[Found: 9 resources]
+        R3[Missing: certificate]
     end
     
     B --> R1
@@ -162,9 +162,9 @@ graph TD
     C -->|Compare| D[LLM Evaluator]
     B -->|Compare| D
     
-    D -->|Extract Statements| E["Ground Truth Facts:<br/>1. 23 articles<br/>2. 9 resources<br/>3. certificate"]
+    D -->|Extract Statements| E[Ground Truth Facts<br/>3 total items]
     
-    E -->|Check Coverage| F["Recall = Found/Total<br/>= 2/3 = 0.67"]
+    E -->|Check Coverage| F[Recall Score<br/>2 of 3 found]
     
     style R1 fill:#90EE90,stroke:#333,stroke-width:2px
     style R2 fill:#90EE90,stroke:#333,stroke-width:2px
@@ -230,17 +230,17 @@ Faithfulness measures whether every claim in the generated answer can be verifie
 
 ```mermaid
 graph TD
-    A[Retrieved Context:<br/>"Course has 23 articles"] -->|Provide| B[LLM]
-    C[Query: "Tell me about the course"] -->|Ask| B
+    A[Retrieved Context] -->|Provide| B[LLM]
+    C[User Query] -->|Ask| B
     
-    B -->|Generate| D["Answer: 'The course has 23 articles<br/>and was created in 2020 by John Doe'"]
+    B -->|Generate| D[Generated Answer]
     
     D -->|Extract| E[Statement Extraction]
     
     subgraph Statements
-        S1["1. Course has 23 articles"]
-        S2["2. Created in 2020"]
-        S3["3. Created by John Doe"]
+        S1[1. Course has 23 articles]
+        S2[2. Created in 2020]
+        S3[3. Created byJohn Doe]
     end
     
     E --> S1
@@ -252,11 +252,11 @@ graph TD
     S2 -->|Check| F
     S3 -->|Check| F
     
-    F -->|Supported ✅| G1[Statement 1: YES]
-    F -->|Not Found ❌| G2[Statement 2: NO]
-    F -->|Not Found ❌| G3[Statement 3: NO]
+    F -->|Supported| G1[Statement 1 YES]
+    F -->|Not Found| G2[Statement 2 NO]
+    F -->|Not Found| G3[Statement 3 NO]
     
-    G1 --> H["Faithfulness = 1/3 = 0.33<br/>⚠️ HIGH HALLUCINATION!"]
+    G1 --> H[Faithfulness Score<br/>1 of 3 supported]
     G2 --> H
     G3 --> H
     
@@ -327,10 +327,10 @@ Response Relevance measures how well the generated answer addresses the original
 
 ```mermaid
 graph TD
-    A[User Query:<br/>"How many articles are in the course?"] 
+    A[User Query] 
     
-    B1[Answer 1:<br/>"There are 23 articles"]
-    B2[Answer 2:<br/>"The course is comprehensive<br/>with many great features"]
+    B1[Answer 1<br/>Direct response]
+    B2[Answer 2<br/>Generic response]
     
     A -->|Evaluate| C[Relevance Evaluator]
     B1 -->|Score| C
@@ -338,8 +338,8 @@ graph TD
     A -->|Evaluate| D[Relevance Evaluator]
     B2 -->|Score| D
     
-    C -->|Direct Answer ✅| E["Relevance Score: 1.0<br/>Perfectly addresses question"]
-    D -->|Off-topic ❌| F["Relevance Score: 0.2<br/>Doesn't answer question"]
+    C -->|Direct Answer| E[Relevance Score 1.0<br/>On topic]
+    D -->|Off-topic| F[Relevance Score 0.2<br/>Not relevant]
     
     style E fill:#90EE90,stroke:#333,stroke-width:3px
     style F fill:#FFB6C1,stroke:#333,stroke-width:3px
@@ -406,11 +406,11 @@ Factual Correctness measures the accuracy of the generated answer against the kn
 
 ```mermaid
 graph TD
-    A[Ground Truth:<br/>"There are 23 articles in the course"] 
+    A[Ground Truth] 
     
-    B1[Generated Answer 1:<br/>"There are 23 articles"]
-    B2[Generated Answer 2:<br/>"There are 28 articles"]
-    B3[Generated Answer 3:<br/>"The course has twenty-three articles"]
+    B1[Generated Answer 1]
+    B2[Generated Answer 2]
+    B3[Generated Answer 3]
     
     A -->|Compare| C[Fact Checker]
     B1 -->|Validate| C
@@ -421,9 +421,9 @@ graph TD
     A -->|Compare| E[Fact Checker]
     B3 -->|Validate| E
     
-    C -->|Exact Match ✅| F["Correctness: 1.0<br/>Perfect accuracy"]
-    D -->|Wrong Number ❌| G["Correctness: 0.0<br/>Factually incorrect"]
-    E -->|Semantic Match ✅| H["Correctness: 1.0<br/>Same meaning"]
+    C -->|Exact Match| F[Correctness 1.0<br/>Perfect accuracy]
+    D -->|Wrong Number| G[Correctness 0.0<br/>Factually incorrect]
+    E -->|Semantic Match| H[Correctness 1.0<br/>Same meaning]
     
     style F fill:#90EE90,stroke:#333,stroke-width:3px
     style G fill:#FF6B6B,stroke:#333,stroke-width:3px
