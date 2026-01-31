@@ -244,8 +244,8 @@ Answer: "There are 23 articles" → CORRECT (Score: 1.0)
 | **Context Precision** | Retrieval | Relevance of retrieved docs | ✅ Test1.py |
 | **Context Recall** | Retrieval | Completeness of retrieval | ✅ Test2.py, Test3.py |
 | **Faithfulness** | Generation | Groundedness in context | ✅ Test4.py |
-| **Response Relevance** | Generation | Answer addresses question | ❌ Coming soon |
-| **Factual Correctness** | End-to-End | Accuracy vs ground truth | ❌ Coming soon |
+| **Answer Relevance** | Generation | Answer addresses question | ✅ Test5.py |
+| **Factual Correctness** | End-to-End | Accuracy vs ground truth | ✅ Test5.py |
 
 ---
 
@@ -447,6 +447,37 @@ Score: 1.0 (all claims supported)
 
 ---
 
+### 🚀 Test 5: Answer Relevance & Factual Correctness
+
+**File:** `Test5.py` | **Status:** ✅ Works with Local Data
+
+**What it does:**
+- Validates the entire RAG pipeline end-to-end
+- Uses `AnswerRelevancy` to ensure the answer addresses the user's question
+- Uses `FactualCorrectness` to verify accuracy against ground truth
+
+**How to run:**
+```bash
+export OPENAI_API_KEY="your-key-here"
+pytest -s Test5.py
+```
+
+**Example:**
+```python
+Query: "How many articles are there in the Selenium webdriver python course?"
+Reference: "There are 23 articles in the course."
+Answer: "There are 23 articles included in the course."
+
+Answer Relevance: 0.99 (Highly relevant to the query)
+Factual Correctness: 1.0 (Facts match the reference)
+```
+
+**Why it matters:**
+- **Answer Relevance:** Ensures the model isn't just hallucinating relevant-sounding text but actually answering *your specific question*
+- **Factual Correctness:** The ultimate source of truth check. Does the answer match what we know to be true?
+
+---
+
 ## 📊 Understanding the Metrics
 
 ### Context Precision
@@ -480,11 +511,13 @@ ragas-llm-evaluation/
 ├── Test2.py                    # Context Recall test
 ├── Test3_framework.py          # Parameterized framework test
 ├── Test4.py                    # Faithfulness test
+├── Test5.py                    # Answer Relevance & Factual Correctness test
 ├── conftest.py                 # Pytest fixtures (LLM wrapper)
 ├── utils.py                    # Utility functions
 ├── testdata/
 │   ├── Test3_framework.json    # Test data for framework tests
-│   └── Test4.json              # Test data for faithfulness test
+│   ├── Test4.json              # Test data for faithfulness test
+│   └── Test5.json              # Test data for reliability tests
 ├── .env.example                # Environment variable template
 ├── .gitignore                  # Git ignore rules
 ├── requirements.txt            # Python dependencies

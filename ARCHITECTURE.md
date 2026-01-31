@@ -33,7 +33,7 @@ graph TD
         D -.->|Context Precision| M1[CP Score]
         G -.->|Context Recall| M2[CR Score]
         J -.->|Faithfulness| M3[F Score]
-        J -.->|Response Relevance| M4[RR Score]
+        J -.->|Answer Relevance| M4[AR Score]
         J -.->|Factual Correctness| M5[FC Score]
     end
     
@@ -316,12 +316,12 @@ Faithfulness = 1/3 = 0.33 (33%) ⚠️ Poor!
 
 ---
 
-## 💬 Metric 4: Response Relevance
+## 💬 Metric 4: Answer Relevance
 
 ### What It Measures
 **Does the answer actually address the user's question?**
 
-Response Relevance measures how well the generated answer addresses the original query. It ensures the LLM **stays on topic** and doesn't provide tangential information.
+Answer Relevance measures how well the generated answer addresses the original query. It ensures the LLM **stays on topic** and doesn't provide tangential information.
 
 ### High-Level Design (HLD)
 
@@ -349,7 +349,7 @@ graph TD
 
 ```mermaid
 classDiagram
-    class ResponseRelevance {
+    class AnswerRelevance {
         +LLM llm
         +name: str
         +ascore(user_input, response)
@@ -376,16 +376,16 @@ classDiagram
         +return: bool
     }
     
-    ResponseRelevance --> SemanticAnalyzer: Uses
-    ResponseRelevance --> TopicChecker: Uses
-    ResponseRelevance --> QuestionAnswerMatcher: Uses
+    AnswerRelevance --> SemanticAnalyzer: Uses
+    AnswerRelevance --> TopicChecker: Uses
+    AnswerRelevance --> QuestionAnswerMatcher: Uses
     
-    note for ResponseRelevance "1. Compare query intent vs answer<br/>2. Check semantic similarity<br/>3. Detect topic drift<br/>4. Higher = more on-topic"
+    note for AnswerRelevance "1. Compare query intent vs answer<br/>2. Check semantic similarity<br/>3. Detect topic drift<br/>4. Higher = more on-topic"
 ```
 
 ### Formula
 ```
-Response Relevance = Semantic Similarity(Query, Answer) + Topic Alignment
+Answer Relevance = Semantic Similarity(Query, Answer) + Topic Alignment
 
 Example:
 Query: "How many articles?"
@@ -509,7 +509,7 @@ graph TD
         D -.->|Evaluate| M1[Context Precision]
         D -.->|+ Ground Truth| M2[Context Recall]
         F -.->|+ Context| M3[Faithfulness]
-        F -.->|+ Query| M4[Response Relevance]
+        F -.->|+ Query| M4[Answer Relevance]
         F -.->|+ Ground Truth| M5[Factual Correctness]
     end
     
@@ -539,8 +539,8 @@ graph TD
 | **Context Precision** | Query + Retrieved Docs | Quality of retrieval (relevance) | Reduce noise in context | ✅ Test1.py |
 | **Context Recall** | Query + Retrieved Docs + Ground Truth | Completeness of retrieval | Ensure nothing missed | ✅ Test2.py, Test3.py |
 | **Faithfulness** | Response + Retrieved Context | Groundedness (no hallucinations) | Detect made-up facts | ✅ Test4.py |
-| **Response Relevance** | Query + Response | On-topic answer | Check answer quality | ❌ Coming Soon |
-| **Factual Correctness** | Response + Ground Truth | Factual accuracy | End-to-end validation | ❌ Coming Soon |
+| **Answer Relevance** | Query + Response | On-topic answer | Check answer quality | ✅ Test5.py |
+| **Factual Correctness** | Response + Ground Truth | Factual accuracy | End-to-end validation | ✅ Test5.py |
 
 ---
 
