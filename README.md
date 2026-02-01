@@ -1,146 +1,144 @@
 # 🦜️🔗 Ragas LLM Evaluation Framework
 
-> **End-to-end evaluation pipeline for RAG architectures.**
+> **The Ultimate Guide to Testing & Evaluating Custom LLM Applications**
 
-## 📌 Project Overview
+## 📖 Introduction: Why This Project Exists?
 
-This repository provides a comprehensive framework for evaluating Retrieval-Augmented Generation (RAG) systems using [Ragas](https://github.com/explodinggradients/ragas). It includes automated testing pipelines, a synthetic data generator, and an industry-grade dashboard for monitoring quality.
+### ❓ The Problem
+Building an LLM app is easy. **Ensuring it works correctly is hard.**
+- When you build a **RAG (Retrieval Augmented Generation)** system, how do you know if it retrieved the *right* document?
+- How do you know if the LLM isn't **hallucinating** (making things up)?
+- How do you measure if the answer is accurate without manually checking 1000s of queries?
 
----
+### 💡 The Solution: Ragas
+**Ragas** (Retrieval Augmented Generation Assessment) is a framework that provides **quantitative metrics** to evaluate your LLM pipeline. It's like a "Unit Test" for your AI.
 
-## 🚀 Quick Setup
-
-**Prerequisites:** Python 3.10+
-
-1.  **Clone & Install:**
-    ```bash
-    git clone https://github.com/abhi9avx/ragas-llm-evaluation.git
-    cd ragas-llm-evaluation
-    python3 -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-    ```
-
-2.  **Configure Environment:**
-    ```bash
-    export OPENAI_API_KEY="sk-..."
-    ```
+This project implements a complete **Test Automation Framework** for LLMs using **Pytest** and **Ragas**, ensuring your AI is reliable, accurate, and production-ready.
 
 ---
 
-## ⚡️ Detailed Manual Testing Guide
+## 🏗️ Architecture & Testing Scope
 
-You can run individual tests to check specific aspects of your RAG pipeline. Here is exactly what each test does:
+We test the entire lifecycle of an AI response, from data retrieval to final generation.
 
-### 🔍 Test 1: Retrieval Precision (`Test1.py`)
-**Goal:** Check if the documents retrieved by your vector database are actually relevant to the user's query.
-- **What it does:** Sends a query, looks at the retrieved documents, and calculates the signal-to-noise ratio.
-- **How to run:**
-  ```bash
-  pytest -s Test1.py
-  ```
+```mermaid
+graph LR
+    subgraph Data_Pipeline
+        A[Proprietary Data] -->|Embed| B[Embedding Model]
+        B -->|Store| C[(Vector Database)]
+    end
+    
+    subgraph Retrieval_Phase
+        D[User Question] -->|Embed| E[Embedding Model]
+        E -->|Search| C
+        C -->|Top K Docs| F[Retrieved Context]
+    end
+    
+    subgraph Generation_Phase
+        D -->|Input| G[Prompt Template]
+        F -->|Input| G
+        G -->|Generate| H[LLM (GPT-4)]
+        H -->|Output| I[Final Answer]
+    end
+    
+    style C fill:#f9f,stroke:#333
+    style H fill:#bbf,stroke:#333
+```
 
-### 🧠 Test 2: Retrieval Recall (`Test2.py`)
-**Goal:** Ensure your system is finding *all* the necessary information needed to answer the question.
-- **What it does:** Compares the retrieved documents against a "Golden Reference" to ensure no critical facts are missing.
-- **How to run:**
-  ```bash
-  pytest -s Test2.py
-  ```
-
-### 🏗️ Test 3: Framework Reliability (`Test3_framework.py`)
-**Goal:** Run a parameterized suite of tests to validate the framework itself stability.
-- **What it does:** Loads multiple test cases from `testdata/Test3_framework.json` and runs them in batch to ensure the evaluation engine works across different inputs.
-- **How to run:**
-  ```bash
-  pytest -s Test3_framework.py
-  ```
-
-### 🛡️ Test 4: Hallucination Check (`Test4.py`)
-**Goal:** Measure **Faithfulness** - ensure the LLM isn't making things up.
-- **What it does:** Checks if every claim in the generated answer can be supported by the retrieved context. If the LLM generates info not in the docs, this test fails.
-- **How to run:**
-  ```bash
-  pytest -s Test4.py
-  ```
-
-### ✅ Test 5: Answer Quality (`Test5.py`)
-**Goal:** Measure **Answer Relevance** and **Factual Correctness**.
-- **What it does:** 
-  1. Checks if the answer actually addresses the specific question asked (Relevance).
-  2. Compares the answer against a known ground truth to verify accuracy (Correctness).
-- **How to run:**
-  ```bash
-  pytest -s Test5.py
-  ```
-
-### 🔄 Test 6: Conversation Flow (`Test6.py`)
-**Goal:** Measure **Topic Adherence** for chatbots.
-- **What it does:** Simulates a multi-turn conversation (User -> Bot -> User -> Bot) and ensures the bot doesn't drift off-topic or get distracted.
-- **How to run:**
-  ```bash
-  pytest -s Test6.py
-  ```
+### 🎯 We Test 3 Key Areas:
+1.  **Retrieval Module:** Are we finding the right data? (Precision & Recall)
+2.  **Generation Module:** Is the LLM answering correctly? (Faithfulness & Relevance)
+3.  **End-to-End:** Is the entire system working? (Factual Correctness & Topic Adherence)
 
 ---
 
-## 🏭 Synthetic Data Factory (`testDataFeaxtory.py`)
+## 📊 Evaluation Metrics Explained
 
-Running low on test cases? We built a tool to generate them for you automatically.
+We use 7 core metrics to score our LLM. Here is what they mean in simple terms:
 
-**What it does:**
-1. Reads all documents from the `fs11/` folder (supports `.docx`).
-2. Uses GPT-4 to "read" the docs and think of realistic questions a user might ask.
-3. Generates the corresponding Ground Truth answers.
-4. Saves this new dataset to `testdata/generated_testset.json`.
+| Metric | Phase | What it checks? | Why it matters? |
+| :--- | :--- | :--- | :--- |
+| **Context Precision** | Retrieval | **Signal-to-Noise Ratio.** Did we retrieve *only* useful documents? | reduces LLM confusion. |
+| **Context Recall** | Retrieval | **Completeness.** Did we retrieve *all* the necessary facts? | Ensures no missing info. |
+| **Faithfulness** | Generation | **Hallucination Check.** Is the answer derived *only* from the context? | Prevents lying. |
+| **Answer Relevance** | Generation | **On-Topic Check.** Did the LLM actually answer the specific question? | Ensures usefulness. |
+| **Factual Correctness** | End-to-End | **Truth Check.** Does the answer match the "Ground Truth"? | Ensures accuracy. |
+| **Topic Adherence** | Multi-Turn | **Drift Check.** Does the bot stay on topic during a long chat? | Vital for chatbots. |
+| **Rubrics Score** | Custom | **Rule Check.** Does the answer meet specific custom rules? | Custom business logic. |
 
-**How to run (Command Line):**
+---
+
+## 🚀 Key Features
+
+*   **🧪 Automated Pytest Suite:** Standard software testing practices applied to AI.
+*   **🧬 Synthetic Data Factory:** Automatically generates test cases from your documents (`fs11/` folder).
+*   **📈 Dashboard (Streamlit):** Visualise pass/fail rates and analyze trends over time.
+*   **🔄 Multi-Turn Support:** Validates conversational history, not just single questions.
+*   **⚙️ CI/CD Integration:** Runs automatically on GitHub Actions.
+
+---
+
+## 🛠️ Tech Stack
+
+*   **Language:** Python 3.10+
+*   **Testing Framework:** Pytest (Asyncio)
+*   **Evaluation Engine:** Ragas
+*   **LLM Provider:** OpenAI (GPT-4o)
+*   **Orchestration:** LangChain
+*   **Visualization:** Streamlit, Plotly
+
+---
+
+## ⚡️ Quick Start Guide
+
+### 1️⃣ Setup & Install
 ```bash
-# Generate 10 new test samples
+git clone https://github.com/abhi9avx/ragas-llm-evaluation.git
+cd ragas-llm-evaluation
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+export OPENAI_API_KEY="sk-..."
+```
+
+### 2️⃣ Run Tests (The "Golden Commands")
+
+| Test File | Description | Command |
+| :--- | :--- | :--- |
+| `Test1.py` | Check **Retrieval Precision** | `pytest -s Test1.py` |
+| `Test2.py` | Check **Retrieval Recall** | `pytest -s Test2.py` |
+| `Test3_framework.py` | Run **Parametrized Suite** | `pytest -s Test3_framework.py` |
+| `Test4.py` | Check **Faithfulness** | `pytest -s Test4.py` |
+| `Test5.py` | Check **Relevance & Accuracy** | `pytest -s Test5.py` |
+| `Test6.py` | Check **Topic Adherence** | `pytest -s Test6.py` |
+| `Test7.py` | Check **Rubrics Score** | `pytest -s Test7.py` |
+
+### 3️⃣ Generate Test Data
+Don't have test data? Let AI write it for you!
+```bash
+# Reads docs from fs11/ and creates 10 test questions
 python testDataFeaxtory.py 10
 ```
 
----
-
-## 📊 Quality Dashboard
-
-We have a professional dashboard to visualize your results.
-
-**How to open:**
+### 4️⃣ Launch Dashboard
+See your results in a professional UI.
 ```bash
 streamlit run dashboard/app.py
 ```
 
-**What you will see:**
-1. **Overview Page:** Trends of how your LLM is performing over time.
-2. **Tools Tab (Sidebar):** A UI version of the Data Factory. You can generate tests here without using the command line.
-3. **Deep Dive:** Click on specific runs to see exactly where the model failed (side-by-side comparison of User Query vs. Model Answer).
-
 ---
 
-## 🤖 Automated Evaluation Pipeline
-
-To run everything at once and update the specific dashboard history:
-
-```bash
-python evaluation/run_eval.py
-```
-*This script runs all the metrics above and saves a permanent record to the `results/` folder.*
-
----
-
-## 🏗️ Project Structure
+## 📂 Project Structure
 
 ```text
 ragas-llm-evaluation/
 ├── evaluation/
-│   └── run_eval.py             # Main execution engine
+│   └── run_eval.py             # 🧠 Main execution engine
 ├── dashboard/
-│   └── app.py                  # Streamlit dashboard
-├── testDataFeaxtory.py         # Synthetic data generator
-├── results/                    # History of runs (JSON/CSV)
-├── fs11/                       # Source documents for generation
-├── testdata/                   # JSON test cases
-├── Test1.py - Test6.py         # Individual Metric Tests
-└── requirements.txt            # Dependencies
+│   └── app.py                  # 📊 Streamlit dashboard
+├── testDataFeaxtory.py         # 🧬 Synthetic data generator factory
+├── results/                    # 💾 Stores history of runs (JSON/CSV)
+├── fs11/                       # 📂 Source documents (PDF/Docx)
+├── Test1.py - Test7.py         # 🧪 Individual Test Scripts
+└── requirements.txt            # 📦 Dependencies
 ```
