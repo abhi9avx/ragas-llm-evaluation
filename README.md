@@ -1,6 +1,10 @@
-# 🎯 Ragas LLM Evaluation Framework
+# 🦜️🔗 Ragas LLM Evaluation Framework
 
-<div align="center">
+> **End-to-end evaluation pipeline for RAG architectures.**
+
+[**📖 Read the Full Usage Guide (HOW_TO_RUN.md)**](HOW_TO_RUN.md)
+
+## 📌 Project Overview
 
 ![Python](https://img.shields.io/badge/python-3.13+-blue.svg)
 ![Pytest](https://img.shields.io/badge/pytest-passing-green.svg)
@@ -246,6 +250,7 @@ Answer: "There are 23 articles" → CORRECT (Score: 1.0)
 | **Faithfulness** | Generation | Groundedness in context | ✅ Test4.py |
 | **Answer Relevance** | Generation | Answer addresses question | ✅ Test5.py |
 | **Factual Correctness** | End-to-End | Accuracy vs ground truth | ✅ Test5.py |
+| **Topic Adherence** | Multi-Turn | Stays on topic across turns | ✅ Test6.py |
 
 ---
 
@@ -477,6 +482,39 @@ Factual Correctness: 1.0 (Facts match the reference)
 - **Factual Correctness:** The ultimate source of truth check. Does the answer match what we know to be true?
 
 ---
+### 🔄 Test 6: Topic Adherence (Multi-Turn)
+
+**File:** `Test6.py` | **Status:** ✅ Works
+
+**What it does:**
+- Validates if the LLM stays on topic throughout a conversation.
+- Uses `TopicAdherenceScore` to ensure the bot doesn't drift away from the user's intent in multi-turn dialogues.
+
+**How to run:**
+```bash
+pytest -s Test6.py
+```
+
+---
+
+### 🧬 Synthetic Data Generation
+We use Ragas to automatically generate test cases from your documentation.
+
+**File:** `testDataFeaxtory.py`
+
+**Features:**
+- Ingests `.docx` files from `fs11/`
+- Generates generic Q&A pairs with ground truth
+- **Integrated into Dashboard:** You can generate data directly from the UI.
+
+**Command Line Usage:**
+```bash
+# Generate 10 samples
+python testDataFeaxtory.py 10
+```
+
+---
+
 ### 📊 Quality Dashboard
 We provide an industry-grade Streamlit dashboard to monitor your LLM's quality over time.
 
@@ -524,12 +562,16 @@ ragas-llm-evaluation/
 ├── Test3_framework.py          # Parameterized framework test
 ├── Test4.py                    # Faithfulness test
 ├── Test5.py                    # Answer Relevance & Factual Correctness test
+├── Test6.py                    # Topic Adherence (Multi-Turn) test
+├── testDataFeaxtory.py         # Synthetic Data Generation Script
 ├── conftest.py                 # Pytest fixtures (LLM wrapper)
 ├── utils.py                    # Utility functions
 ├── testdata/
 │   ├── Test3_framework.json    # Test data for framework tests
 │   ├── Test4.json              # Test data for faithfulness test
-│   └── Test5.json              # Test data for reliability tests
+│   ├── Test5.json              # Test data for reliability tests
+│   ├── Test6.json              # Multi-turn conversation data
+│   └── generated_testset.json  # Synthetically generated test data
 ├── .env.example                # Environment variable template
 ├── .gitignore                  # Git ignore rules
 ├── requirements.txt            # Python dependencies
