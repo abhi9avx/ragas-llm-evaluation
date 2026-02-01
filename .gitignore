@@ -26,6 +26,10 @@ build/
 .coverage
 htmlcov/
 
+# Data and Results
+results/
+!results/.gitkeep
+
 # OS
 .DS_Store
 Thumbs.db

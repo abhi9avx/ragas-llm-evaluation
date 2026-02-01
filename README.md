@@ -477,7 +477,19 @@ Factual Correctness: 1.0 (Facts match the reference)
 - **Factual Correctness:** The ultimate source of truth check. Does the answer match what we know to be true?
 
 ---
+### 📊 Quality Dashboard
+We provide an industry-grade Streamlit dashboard to monitor your LLM's quality over time.
 
+**Features:**
+- **KPI Cards:** Instant view of latest pass rates and scores
+- **Trend Analysis:** Track velocity and regression over time
+- **Deep Dive:** Drill down into specific runs and inspect failures
+- **Model Comparison:** Radar charts to compare different model versions side-by-side
+
+To launch:
+```bash
+streamlit run dashboard/app.py
+```
 ## 📊 Understanding the Metrics
 
 ### Context Precision

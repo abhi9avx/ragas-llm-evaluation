@@ -1,0 +1,25 @@
+[
+    {
+        "conversation": [
+            {
+                "role": "user",
+                "content": "how many articles are there in the selenium webdriver python course?"
+            },
+            {
+                "role": "assistant",
+                "content": "There are 23 articles in the Selenium WebDriver Python course."
+            },
+            {
+                "role": "user",
+                "content": "How many downloadable resources are there in this course?"
+            },
+            {
+                "role": "assistant",
+                "content": "There are 9 downloadable resources in the course."
+            }
+        ],
+        "reference_topics": [
+            "The AI should:\n    1. Give results related to the selenium webdriver python course\n    2. There are 23 articles and 9 downloadable resources in the course"
+        ]
+    }
+]
