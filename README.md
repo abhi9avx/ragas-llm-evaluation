@@ -141,4 +141,21 @@ ragas-llm-evaluation/
 ├── fs11/                       # 📂 Source documents (PDF/Docx)
 ├── Test1.py - Test7.py         # 🧪 Individual Test Scripts
 └── requirements.txt            # 📦 Dependencies
-```
+
+---
+
+## 🔮 Upcoming Features
+
+*   **Self-Healing RAG:** Automatically rewrite failing retrieval queries based on low scores.
+*   **Cost Analysis:** Track token usage and estimated cost per evaluation run.
+*   **Vector DB Integration:** Direct connectors for Pinecone, Weaviate, and Milvus.
+*   **Slack/Discord Alerts:** Get notified immediately when your model quality drops.
+
+---
+
+<div align="center">
+
+### Made with ❤️ by [Abhinav (abhi9avx)](https://github.com/abhi9avx) 🚀
+
+</div>
+
