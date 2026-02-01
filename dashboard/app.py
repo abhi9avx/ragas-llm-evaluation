@@ -136,6 +136,9 @@ if st.session_state.get('show_generator', False):
     st.markdown("## 🧬 Synthetic Test Data Generator")
     st.info("Uses Ragas to generate Question-Answer pairs from your `fs11/` documents.")
     
+    # Define generation path centrally
+    gen_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "testdata", "generated_testset.json")
+    
     col_gen1, col_gen2 = st.columns(2)
     with col_gen1:
         test_size = st.slider("Number of samples:", min_value=1, max_value=50, value=5)
