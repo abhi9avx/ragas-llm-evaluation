@@ -122,10 +122,61 @@ with st.sidebar:
         options=metric_cols,
         default=metric_cols[:4] if len(metric_cols) >= 4 else metric_cols
     )
+    
+    st.markdown("### 🛠️ Tools")
+    if st.button("Generate Synthetic Data"):
+        st.session_state['show_generator'] = True
 
 # ===============================
 # Main Dashboard
 # ===============================
+
+# Handle Generator UI
+if st.session_state.get('show_generator', False):
+    st.markdown("## 🧬 Synthetic Test Data Generator")
+    st.info("Uses Ragas to generate Question-Answer pairs from your `fs11/` documents.")
+    
+    col_gen1, col_gen2 = st.columns(2)
+    with col_gen1:
+        test_size = st.slider("Number of samples:", min_value=1, max_value=50, value=5)
+    with col_gen2:
+        if st.button("🚀 Start Generation"):
+            with st.spinner("Analyzing documents & hallucinating questions... (This may take a minute)"):
+                try:
+                    # Run the generation script as a subprocess or import logic
+                    # Importing is cleaner but script is standalone without param inputs
+                    # Let's run command for isolation
+                    import subprocess
+                    result = subprocess.run(
+                        ["python", "testDataFeaxtory.py", str(test_size)], 
+                        capture_output=True, text=True, cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                    )
+                    
+                    if result.returncode == 0:
+                        st.success("Generation Complete!")
+                        st.session_state['show_generator'] = False
+                        st.balloons()
+                    else:
+                        st.error("Generation failed:")
+                        st.code(result.stderr)
+                except Exception as e:
+                    st.error(f"Error: {e}")
+                    
+    if st.button("⬅️ Back to Dashboard"):
+        st.session_state['show_generator'] = False
+        st.rerun()
+        
+    # Show existing generated data if any
+    gen_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "testdata", "generated_testset.json")
+    if os.path.exists(gen_file):
+        st.markdown("### 📄 Review Generated Data")
+        try:
+            gen_df = pd.read_json(gen_file)
+            st.dataframe(gen_df, use_container_width=True)
+        except:
+            st.warning("Could not read generated JSON file.")
+            
+    st.stop() # Stop rendering the rest of the dashboard when in generator mode
 
 if history_df.empty:
     st.info("👋 Welcome! Run `python evaluation/run_eval.py` to generate your first evaluation report.")

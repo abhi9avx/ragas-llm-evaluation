@@ -45,8 +45,17 @@ def test_dataGen():
     generate_embeddings = LangchainEmbeddingsWrapper(embed)
     generator = TestsetGenerator(llm=langchain_llm, embedding_model=generate_embeddings)
     
-    print("Generating testset (size=20)...")
-    dataset = generator.generate_with_langchain_docs(docs, testset_size=20)
+    import sys
+    # Read size from args if provided
+    size = 20
+    if len(sys.argv) > 1:
+        try:
+            size = int(sys.argv[1])
+        except:
+            pass
+            
+    print(f"Generating testset (size={size})...")
+    dataset = generator.generate_with_langchain_docs(docs, testset_size=size)
     
     # Save to file instead of just printing
     output_path = os.path.join(base_dir, "testdata", "generated_testset.json")
