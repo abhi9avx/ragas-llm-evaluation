@@ -153,11 +153,13 @@ if st.session_state.get('show_generator', False):
                     )
                     
                     if result.returncode == 0:
-                        st.success("Generation Complete!")
-                        st.session_state['show_generator'] = False
+                        st.success("✅ Generation Complete!")
                         st.balloons()
+                        # Force reload of data
+                        if os.path.exists(gen_file):
+                             st.session_state['gen_data_timestamp'] = datetime.now()
                     else:
-                        st.error("Generation failed:")
+                        st.error("❌ Generation failed:")
                         st.code(result.stderr)
                 except Exception as e:
                     st.error(f"Error: {e}")
@@ -167,14 +169,43 @@ if st.session_state.get('show_generator', False):
         st.rerun()
         
     # Show existing generated data if any
-    gen_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "testdata", "generated_testset.json")
     if os.path.exists(gen_file):
-        st.markdown("### 📄 Review Generated Data")
+        st.markdown("---")
+        st.markdown("### 📄 Review Generated Test Cases")
+        
         try:
             gen_df = pd.read_json(gen_file)
-            st.dataframe(gen_df, use_container_width=True)
-        except:
-            st.warning("Could not read generated JSON file.")
+            
+            # Metrics about the generated set
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Generated Samples", len(gen_df))
+            if "question_type" in gen_df.columns:
+                 type_counts = gen_df["question_type"].value_counts().to_dict()
+                 top_type = max(type_counts, key=type_counts.get) if type_counts else "N/A"
+                 m2.metric("Dominant Type", top_type)
+            
+            # Interactive Editor/Viewer
+            st.dataframe(
+                gen_df, 
+                use_container_width=True,
+                height=400,
+                column_config={
+                    "question": st.column_config.TextColumn("Question", width="medium"),
+                    "ground_truth": st.column_config.TextColumn("Ground Truth", width="medium"),
+                    "evolution_type": st.column_config.TextColumn("Type", width="small"),
+                    "episode_done": st.column_config.CheckboxColumn("Done", disabled=True),
+                }
+            )
+            
+            st.download_button(
+                label="📥 Download JSON",
+                data=gen_df.to_json(orient="records", indent=4),
+                file_name="ragas_testset.json",
+                mime="application/json"
+            )
+            
+        except Exception as e:
+            st.warning(f"Could not read generated JSON file: {e}")
             
     st.stop() # Stop rendering the rest of the dashboard when in generator mode
 
