@@ -28,83 +28,104 @@ This repository provides a comprehensive framework for evaluating Retrieval-Augm
 
 ---
 
-## ⚡️ Running Evaluations
+## ⚡️ Detailed Manual Testing Guide
 
-### 1️⃣ Run Full Evaluation Suite (Recommended)
-Executes all checks and saves results to `results/` for the dashboard.
-```bash
-python evaluation/run_eval.py
-```
+You can run individual tests to check specific aspects of your RAG pipeline. Here is exactly what each test does:
 
-### 2️⃣ Run Individual Metrics
-| Metric | Command | Description |
-| :--- | :--- | :--- |
-| **Context Precision** | `pytest Test1.py` | Signal-to-noise ratio in retrieved docs. |
-| **Context Recall** | `pytest Test2.py` | Checks if retrieved docs contain ground truth. |
-| **Framework Test** | `pytest Test3_framework.py` | Parameterized tests for the Ragas framework. |
-| **Faithfulness** | `pytest Test4.py` | Ensures answers are derived *only* from context. |
-| **Answer Relevance** | `pytest Test5.py` | Checks if the answer addresses user's query. |
-| **Factual Correctness** | `pytest Test5.py` | Validates answer against ground truth. |
-| **Topic Adherence** | `pytest Test6.py` | (Multi-Turn) Ensures bot stays on topic. |
+### 🔍 Test 1: Retrieval Precision (`Test1.py`)
+**Goal:** Check if the documents retrieved by your vector database are actually relevant to the user's query.
+- **What it does:** Sends a query, looks at the retrieved documents, and calculates the signal-to-noise ratio.
+- **How to run:**
+  ```bash
+  pytest -s Test1.py
+  ```
+
+### 🧠 Test 2: Retrieval Recall (`Test2.py`)
+**Goal:** Ensure your system is finding *all* the necessary information needed to answer the question.
+- **What it does:** Compares the retrieved documents against a "Golden Reference" to ensure no critical facts are missing.
+- **How to run:**
+  ```bash
+  pytest -s Test2.py
+  ```
+
+### 🏗️ Test 3: Framework Reliability (`Test3_framework.py`)
+**Goal:** Run a parameterized suite of tests to validate the framework itself stability.
+- **What it does:** Loads multiple test cases from `testdata/Test3_framework.json` and runs them in batch to ensure the evaluation engine works across different inputs.
+- **How to run:**
+  ```bash
+  pytest -s Test3_framework.py
+  ```
+
+### 🛡️ Test 4: Hallucination Check (`Test4.py`)
+**Goal:** Measure **Faithfulness** - ensure the LLM isn't making things up.
+- **What it does:** Checks if every claim in the generated answer can be supported by the retrieved context. If the LLM generates info not in the docs, this test fails.
+- **How to run:**
+  ```bash
+  pytest -s Test4.py
+  ```
+
+### ✅ Test 5: Answer Quality (`Test5.py`)
+**Goal:** Measure **Answer Relevance** and **Factual Correctness**.
+- **What it does:** 
+  1. Checks if the answer actually addresses the specific question asked (Relevance).
+  2. Compares the answer against a known ground truth to verify accuracy (Correctness).
+- **How to run:**
+  ```bash
+  pytest -s Test5.py
+  ```
+
+### 🔄 Test 6: Conversation Flow (`Test6.py`)
+**Goal:** Measure **Topic Adherence** for chatbots.
+- **What it does:** Simulates a multi-turn conversation (User -> Bot -> User -> Bot) and ensures the bot doesn't drift off-topic or get distracted.
+- **How to run:**
+  ```bash
+  pytest -s Test6.py
+  ```
 
 ---
 
-## 🧬 Synthetic Data Generator
-Generate test cases automatically from your documents (`fs11/`).
+## 🏭 Synthetic Data Factory (`testDataFeaxtory.py`)
 
-### Option A: Via Dashboard (UI)
-1. Go to sidebar → **Tools** → **Generate Synthetic Data**.
-2. Select sample size and click **Start**.
+Running low on test cases? We built a tool to generate them for you automatically.
 
-### Option B: Via Command Line (CLI)
+**What it does:**
+1. Reads all documents from the `fs11/` folder (supports `.docx`).
+2. Uses GPT-4 to "read" the docs and think of realistic questions a user might ask.
+3. Generates the corresponding Ground Truth answers.
+4. Saves this new dataset to `testdata/generated_testset.json`.
+
+**How to run (Command Line):**
 ```bash
-# Generate 10 new samples
+# Generate 10 new test samples
 python testDataFeaxtory.py 10
 ```
-*Output saved to:* `testdata/generated_testset.json`
 
 ---
 
 ## 📊 Quality Dashboard
-Monitor your metrics, track trends, and compare runs.
 
+We have a professional dashboard to visualize your results.
+
+**How to open:**
 ```bash
 streamlit run dashboard/app.py
 ```
 
-**Key Features:**
-*   **Overview:** KPI cards for latest pass rates and scores.
-*   **Trends:** Heatmaps and line charts to track regression.
-*   **Deep Dive:** Drill down into specific runs to inspect failed examples.
-*   **Comparison:** Radar charts to compare model versions side-by-side.
+**What you will see:**
+1. **Overview Page:** Trends of how your LLM is performing over time.
+2. **Tools Tab (Sidebar):** A UI version of the Data Factory. You can generate tests here without using the command line.
+3. **Deep Dive:** Click on specific runs to see exactly where the model failed (side-by-side comparison of User Query vs. Model Answer).
 
 ---
 
-## 📊 Understanding the Metrics
+## 🤖 Automated Evaluation Pipeline
 
-### Context Precision
-**Goal:** Evaluate how much of the retrieved context is actually relevant to the question.
-- **High Score:** Most retrieved chunks are useful.
-- **Low Score:** Too much noise/irrelevant info.
+To run everything at once and update the specific dashboard history:
 
-### Context Recall
-**Goal:** Evaluate if the retrieval system found all the necessary information to answer the question.
-- **High Score:** All relevant info was found.
-- **Low Score:** Critical information was missed.
-
-### Faithfulness
-**Goal:** Ensure the generated answer is grounded in the retrieved context and not hallucinated.
-- **High Score:** Answer is fully supported by context.
-- **Low Score:** Model is making things up.
-
-### Answer Relevance
-**Goal:** Ensure the answer actually addresses the user's question, regardless of factual correctness.
-
-### Factual Correctness
-**Goal:** Compare the generated answer against a "Ground Truth" answer.
-
-### Topic Adherence
-**Goal:** For multi-turn conversations, ensure the model doesn't drift off-topic.
+```bash
+python evaluation/run_eval.py
+```
+*This script runs all the metrics above and saves a permanent record to the `results/` folder.*
 
 ---
 
@@ -123,11 +144,3 @@ ragas-llm-evaluation/
 ├── Test1.py - Test6.py         # Individual Metric Tests
 └── requirements.txt            # Dependencies
 ```
-
----
-
-## 👨‍💻 CI/CD Integration
-This repo includes a GitHub Action (`.github/workflows/eval.yml`) that:
-1. Runs `run_eval.py` on every push.
-2. Uploads results as artifacts.
-3. Automatically updates the repository with new history (optional).
