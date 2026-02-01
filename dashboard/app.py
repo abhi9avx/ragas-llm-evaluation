@@ -11,68 +11,146 @@ from datetime import datetime
 # Configuration & Styles
 # ===============================
 st.set_page_config(
-    page_title="LLM Quality Monitor",
-    page_icon="🛡️",
+    page_title="Ragas LLM Studio",
+    page_icon="🧬",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for "Industry Level" look
+# Custom CSS for "Ultra Wow" look
 st.markdown("""
 <style>
-    /* Main container styling */
-    .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
+    /* Import fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Main Background */
+    .main {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    }
+
+    /* Card Containers */
+    .metric-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(10px);
+        margin-bottom: 20px;
+        transition: transform 0.2s ease-in-out;
     }
     
-    /* Card-like metrics */
-    div[data-testid="stMetric"] {
-        background-color: #1e293b;
-        border: 1px solid #334155;
-        padding: 15px;
-        border-radius: 10px;
-        color: white;
+    .metric-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(99, 102, 241, 0.5);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
     }
-    
-    div[data-testid="stMetricLabel"] {
+
+    /* Text Styling */
+    .metric-label {
         color: #94a3b8;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
     }
     
-    div[data-testid="stMetricValue"] {
-        font-size: 1.8rem;
+    .metric-value {
         color: #f8fafc;
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: linear-gradient(to right, #ffffff, #e2e8f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .metric-delta {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Positive/Negative Colors */
+    .delta-pos { color: #4ade80; }
+    .delta-neg { color: #f87171; }
+    .delta-neu { color: #94a3b8; }
+
+    /* Custom Headers */
+    h1, h2, h3 {
+        color: #f8fafc !important;
+        font-weight: 700;
     }
     
     /* Tabs styling */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 20px;
+        gap: 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 4px;
     }
     
     .stTabs [data-baseweb="tab"] {
-        height: 50px;
+        height: 48px;
         white-space: pre-wrap;
-        border-radius: 5px;
-        color: #cbd5e1;
+        border-radius: 8px 8px 0 0;
+        color: #94a3b8;
+        font-weight: 600;
+        padding: 0 16px;
     }
     
     .stTabs [aria-selected="true"] {
-        background-color: #6366f1;
-        color: white;
+        background-color: transparent;
+        color: #818cf8;
+        border-bottom: 2px solid #818cf8;
     }
     
-    /* Tables */
+    /* Streamlit Components overrides */
     div[data-testid="stDataFrame"] {
-        border: 1px solid #334155;
-        border-radius: 10px;
-        overflow: hidden;
+        background-color: rgba(30, 41, 59, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 10px;
+    }
+    
+    .stButton button {
+        background: linear-gradient(90deg, #4f46e5 0%, #6366f1 100%);
+        color: white;
+        border: None;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+    
+    .stButton button:hover {
+        transform: scale(1.02);
+        box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+    }
+    
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #0f172a;
+        border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    /* Expander */
+    .streamlit-expanderHeader {
+        background-color: rgba(255,255,255,0.02);
+        border-radius: 8px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ===============================
-# Data Loading
+# Data Logic
 # ===============================
 @st.cache_data
 def load_data():
@@ -94,211 +172,263 @@ def load_data():
         return pd.DataFrame(), pd.DataFrame(), RESULTS_DIR
         
     history_df = pd.DataFrame(history).sort_values("timestamp", ascending=True)
-    
-    # Load all details for latest runs to enable drill-down without reloading everything
-    # (In prod, you'd load this on demand)
     return history_df, RESULTS_DIR
 
 history_df, RESULTS_DIR = load_data()
 
 # ===============================
-# Sidebar
+# Helper Functions
+# ===============================
+def render_metric_card(label, value, delta=None, delta_text=None):
+    delta_html = ""
+    if delta is not None:
+        color_class = "delta-pos" if delta > 0 else "delta-neg" if delta < 0 else "delta-neu"
+        arrow = "↑" if delta > 0 else "↓" if delta < 0 else "─"
+        display_delta = abs(delta)
+        delta_html = f'<div class="metric-delta {color_class}">{arrow} {display_delta:.4f} {delta_text if delta_text else ""}</div>'
+        
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">{label}</div>
+        <div class="metric-value">{value}</div>
+        {delta_html}
+    </div>
+    """, unsafe_allow_html=True)
+
+# ===============================
+# Sidebar & Navigation
 # ===============================
 with st.sidebar:
-    st.title("🛡️ LLM Quality Monitor")
-    st.markdown("---")
+    st.markdown("""
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="font-size: 3rem;">🧬</div>
+            <h1 style="font-size: 1.5rem; background: linear-gradient(to right, #818cf8, #c7d2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Ragas Studio</h1>
+        </div>
+    """, unsafe_allow_html=True)
     
     if not history_df.empty:
-        st.write(f"**Total Runs:** {len(history_df)}")
-        st.write(f"**Last Run:** {pd.to_datetime(history_df['timestamp'].iloc[-1]).strftime('%Y-%m-%d %H:%M')}")
-    else:
-        st.warning("No data found.")
-        
-    st.markdown("### Settings")
+        st.caption("🔍 DASHBOARD STATUS")
+        st.markdown(f"**Run Count:** `{len(history_df)}`")
+        st.markdown(f"**Latest:** `{pd.to_datetime(history_df['timestamp'].iloc[-1]).strftime('%d %b %H:%M')}`")
+    
+    st.markdown("---")
+    st.caption("⚙️ CONFIGURATION")
+    
     metric_cols = [c for c in history_df.columns if c not in ["run_id", "timestamp", "total_samples", "commit"] and not c.startswith("Unnamed")] if not history_df.empty else []
     
     selected_metrics = st.multiselect(
-        "Trace Metrics",
+        "Active Metrics",
         options=metric_cols,
-        default=metric_cols[:4] if len(metric_cols) >= 4 else metric_cols
+        default=metric_cols[:4] if len(metric_cols) >= 4 else metric_cols,
+        help="Select which Ragas metrics to visualize across the dashboard."
     )
     
-    st.markdown("### 🛠️ Tools")
-    if st.button("Generate Synthetic Data"):
-        st.session_state['show_generator'] = True
-
-# ===============================
-# Main Dashboard
-# ===============================
-
-# Handle Generator UI
-if st.session_state.get('show_generator', False):
-    st.markdown("## 🧬 Synthetic Test Data Generator")
-    st.info("Uses Ragas to generate Question-Answer pairs from your `fs11/` documents.")
+    st.markdown("---")
+    st.caption("🛠️ UTILITIES")
     
-    # Define generation path centrally
+    col_tools1, col_tools2 = st.columns(2)
+    with col_tools1:
+         if st.button("🧪 Gen Data", use_container_width=True):
+            st.session_state['show_generator'] = True
+    with col_tools2:
+        if st.button("🔄 Refresh", use_container_width=True):
+            st.cache_data.clear()
+            st.rerun()
+
+# ===============================
+# Synthetic Data Generator View
+# ===============================
+if st.session_state.get('show_generator', False):
+    st.markdown("## 🧬 Synthetic Test Data Factory")
+    st.markdown("Generate high-quality Q&A test sets directly from your `fs11/` documents using Ragas + GPT-4o.")
+    
     gen_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "testdata", "generated_testset.json")
     
-    col_gen1, col_gen2 = st.columns(2)
-    with col_gen1:
-        test_size = st.slider("Number of samples:", min_value=1, max_value=50, value=5)
-    with col_gen2:
-        if st.button("🚀 Start Generation"):
-            with st.spinner("Analyzing documents & hallucinating questions... (This may take a minute)"):
-                try:
-                    # Run the generation script as a subprocess or import logic
-                    # Importing is cleaner but script is standalone without param inputs
-                    # Let's run command for isolation
-                    import subprocess
-                    result = subprocess.run(
-                        ["python", "testDataFeaxtory.py", str(test_size)], 
-                        capture_output=True, text=True, cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                    )
-                    
-                    if result.returncode == 0:
-                        st.success("✅ Generation Complete!")
-                        st.balloons()
-                        # Force reload of data
-                        if os.path.exists(gen_file):
-                             st.session_state['gen_data_timestamp'] = datetime.now()
-                    else:
-                        st.error("❌ Generation failed:")
-                        st.code(result.stderr)
-                except Exception as e:
-                    st.error(f"Error: {e}")
-                    
-    if st.button("⬅️ Back to Dashboard"):
-        st.session_state['show_generator'] = False
-        st.rerun()
-        
-    # Show existing generated data if any
+    # Generator Controls
+    with st.container():
+        c1, c2, c3 = st.columns([2, 1, 1])
+        with c1:
+            test_size = st.slider("Samples to Generate", 1, 50, 5, help="More samples = longer generation time")
+        with c2:
+            st.write("") # Spacer
+            st.write("") 
+            if st.button("🚀 Start Engine", type="primary", use_container_width=True):
+                with st.status("🏭 Constructing Dataset...", expanded=True) as status:
+                    try:
+                        st.write("Reading documents...")
+                        import subprocess
+                        result = subprocess.run(
+                            ["python", "testDataFeaxtory.py", str(test_size)], 
+                            capture_output=True, text=True, cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                        )
+                        if result.returncode == 0:
+                            status.update(label="✅ Generation Successful!", state="complete", expanded=False)
+                            st.balloons()
+                            if os.path.exists(gen_file):
+                                st.session_state['gen_data_timestamp'] = datetime.now()
+                        else:
+                            status.update(label="❌ Generation Failed", state="error")
+                            st.error(result.stderr)
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+        with c3:
+            st.write("")
+            st.write("")
+            if st.button("✖️ Close Tool", use_container_width=True):
+                st.session_state['show_generator'] = False
+                st.rerun()
+
+    # Review Section
     if os.path.exists(gen_file):
-        st.markdown("---")
-        st.markdown("### 📄 Review Generated Test Cases")
-        
+        st.markdown("### 🔍 Dataset Preview")
         try:
             gen_df = pd.read_json(gen_file)
             
-            # Metrics about the generated set
-            m1, m2, m3 = st.columns(3)
-            m1.metric("Generated Samples", len(gen_df))
-            if "question_type" in gen_df.columns:
-                 type_counts = gen_df["question_type"].value_counts().to_dict()
-                 top_type = max(type_counts, key=type_counts.get) if type_counts else "N/A"
-                 m2.metric("Dominant Type", top_type)
+            # Stats
+            nm1, nm2, nm3 = st.columns(3)
+            nm1.metric("Total Questions", len(gen_df))
+            if "evolution_type" in gen_df.columns:
+                 top_type = gen_df["evolution_type"].mode()[0] if not gen_df.empty else "N/A"
+                 nm2.metric("Dominant Evolution", top_type)
             
-            # Interactive Editor/Viewer
             st.dataframe(
-                gen_df, 
+                gen_df,
                 use_container_width=True,
-                height=400,
+                height=300,
                 column_config={
-                    "question": st.column_config.TextColumn("Question", width="medium"),
-                    "ground_truth": st.column_config.TextColumn("Ground Truth", width="medium"),
+                    "question": st.column_config.TextColumn("Question", width="large"),
+                    "ground_truth": "Ground Truth",
                     "evolution_type": st.column_config.TextColumn("Type", width="small"),
-                    "episode_done": st.column_config.CheckboxColumn("Done", disabled=True),
                 }
             )
             
+            # Download
             st.download_button(
-                label="📥 Download JSON",
+                "📥 Download JSON Dataset",
                 data=gen_df.to_json(orient="records", indent=4),
-                file_name="ragas_testset.json",
+                file_name="ragas_synthetic_data.json",
                 mime="application/json"
             )
-            
         except Exception as e:
-            st.warning(f"Could not read generated JSON file: {e}")
+            st.warning(f"Could not load data: {e}")
             
-    st.stop() # Stop rendering the rest of the dashboard when in generator mode
+    st.stop()
 
+
+# ===============================
+# Main Dashboard View
+# ===============================
 if history_df.empty:
     st.info("👋 Welcome! Run `python evaluation/run_eval.py` to generate your first evaluation report.")
     st.stop()
 
-# Header
-col1, col2 = st.columns([3, 1])
-with col1:
-    st.title("Evaluation Overview")
-    st.markdown("High-level performance metrics of your RAG pipeline.")
-with col2:
-    if st.button("🔄 Refresh Data"):
-        st.cache_data.clear()
-        st.rerun()
+# 1. Header Section
+st.markdown("### 📊 Performance Overview")
 
-# 1. KPI Cards (Most recent run)
 latest_run = history_df.iloc[-1]
 prev_run = history_df.iloc[-2] if len(history_df) > 1 else None
 
-st.markdown("### 📊 Latest Performance")
-kpi_cols = st.columns(len(selected_metrics) + 1)
+# 2. KPI Cards Row
+col_kpi = st.columns(len(selected_metrics) + 1)
+with col_kpi[0]:
+    val = int(latest_run.get('total_samples', 0))
+    delta = val - int(prev_run.get('total_samples', 0)) if prev_run is not None else 0
+    render_metric_card("Total Samples", f"{val}", delta=delta)
 
-# Total Samples Card
-kpi_cols[0].metric(
-    "Test Coverage", 
-    f"{int(latest_run.get('total_samples', 0))} Samples",
-    delta=f"{int(latest_run.get('total_samples', 0) - prev_run.get('total_samples', 0))}" if prev_run is not None else None
-)
-
-# Metric Cards
 for i, metric in enumerate(selected_metrics):
-    val = latest_run.get(metric, 0)
-    prev_val = prev_run.get(metric, 0) if prev_run is not None else 0
-    delta = val - prev_val
-    
-    # Color logic: Green if goes up (usually good), unless you define 'bad' metrics like latency (TODO)
-    kpi_cols[i+1].metric(
-        label=metric.replace("_", " ").title(),
-        value=f"{val:.4f}",
-        delta=f"{delta:.4f}"
-    )
+    with col_kpi[i+1]:
+        val = latest_run.get(metric, 0)
+        prev_val = prev_run.get(metric, 0) if prev_run is not None else 0
+        delta = val - prev_val
+        render_metric_card(metric.replace("_", " "), f"{val:.3f}", delta=delta)
 
-st.markdown("---")
+st.markdown("<br>", unsafe_allow_html=True)
 
-# 2. Main Tabs
-tab1, tab2, tab3 = st.tabs(["📈 Trends & Analysis", "🔬 Deep Dive", "⚔️ Compare Comparisons"])
+# 3. Main Content
+tab_main, tab_dive, tab_comp = st.tabs(["📈 Velocity & Trends", "🔬 Failure Analysis", "⚔️ Model Comparison"])
 
-# --- TAB 1: Trends ---
-with tab1:
-    st.markdown("#### Historical Velocity")
+with tab_main:
+    st.markdown("#### Evaluation Velocity")
     
     if selected_metrics:
-        # Create a clean line chart
-        fig = px.line(
-            history_df, 
-            x="run_id", 
-            y=selected_metrics,
-            markers=True,
-            color_discrete_sequence=px.colors.qualitative.Pastel
-        )
+        # High-end Area Chart
+        fig = go.Figure()
+        
+        colors = ['#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b']
+        
+        for idx, metric in enumerate(selected_metrics):
+            color = colors[idx % len(colors)]
+            fig.add_trace(go.Scatter(
+                x=history_df['timestamp'],
+                y=history_df[metric],
+                mode='lines+markers',
+                name=metric.replace("_", " ").title(),
+                line=dict(color=color, width=3, shape='spline'),
+                fill='tozeroy',
+                fillcolor=f'rgba({int(color[1:3], 16)}, {int(color[3:5], 16)}, {int(color[5:7], 16)}, 0.1)',
+                hovertemplate='<b>%{y:.4f}</b>'
+            ))
+
         fig.update_layout(
+            template="plotly_dark",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#cbd5e1"),
+            margin=dict(l=0, r=0, t=20, b=0),
+            height=350,
             hovermode="x unified",
-            xaxis=dict(showgrid=False),
-            yaxis=dict(showgrid=True, gridcolor="#334155")
+            xaxis=dict(showgrid=False, title=None),
+            yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.1)", zeroline=False),
+            legend=dict(orientation="h", y=1.1, x=0)
         )
         st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown("#### Recent Runs")
-    display_df = history_df[["run_id", "timestamp"] + selected_metrics].sort_values("timestamp", ascending=False)
-    
-    # Styled dataframe with heatmap
-    try:
-        st.dataframe(
-            display_df.style.background_gradient(cmap="RdYlGn", subset=selected_metrics, axis=None),
-            use_container_width=True
-        )
-    except ImportError:
-         st.warning("⚠️ Heatmap styling disabled (matplotlib missing). Running basic table.")
-         st.dataframe(display_df, use_container_width=True)
 
-# --- TAB 2: Deep Dive ---
-with tab2:
-    col_sel, col_empty = st.columns([1, 2])
+    c1, c2 = st.columns([2, 1])
+    with c1:
+        st.markdown("#### Recent Runs History")
+        display_df = history_df[["run_id", "timestamp"] + selected_metrics].sort_values("timestamp", ascending=False)
+        st.dataframe(
+            display_df.style.background_gradient(cmap="RdYlGn", subset=selected_metrics, axis=None, vmin=0, vmax=1),
+            use_container_width=True,
+            height=300
+        )
+    with c2:
+        st.markdown("#### Aggregated Score Distribution")
+        if selected_metrics:
+            # Radar chart of latest run vs average
+            avg_scores = history_df[selected_metrics].mean()
+            latest_scores = history_df.iloc[-1][selected_metrics]
+            
+            fig_rad = go.Figure()
+            fig_rad.add_trace(go.Scatterpolar(
+                r=avg_scores.values,
+                theta=[m.replace("_", " ").title() for m in selected_metrics],
+                fill='toself',
+                name='Average',
+                line_color='#94a3b8'
+            ))
+            fig_rad.add_trace(go.Scatterpolar(
+                r=latest_scores.values,
+                theta=[m.replace("_", " ").title() for m in selected_metrics],
+                fill='toself',
+                name='Latest',
+                line_color='#6366f1'
+            ))
+            fig_rad.update_layout(
+                template="plotly_dark",
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                margin=dict(l=20, r=20, t=20, b=20),
+                height=300,
+                polar=dict(radialaxis=dict(visible=True, range=[0, 1]))
+            )
+            st.plotly_chart(fig_rad, use_container_width=True)
+
+with tab_dive:
+    st.markdown("#### 🕵️ Deep Dive Inspection")
+    
+    col_sel, _ = st.columns([1, 2])
     with col_sel:
-        run_id_select = st.selectbox("Inspect Run:", history_df["run_id"].unique(), index=len(history_df)-1)
+        run_id_select = st.selectbox("Select Run ID", history_df["run_id"].unique(), index=len(history_df)-1)
     
     details_path = os.path.join(RESULTS_DIR, f"{run_id_select}_details.csv")
     
@@ -306,107 +436,98 @@ with tab2:
         details_df = pd.read_csv(details_path)
         
         # Breakdown
-        st.markdown(f"#### Run Details: `{run_id_select}`")
+        col_dist, col_worst = st.columns([1, 2])
         
-        # 1. Distribution of scores
-        if selected_metrics:
-            dist_fig = px.box(
-                details_df, 
-                y=selected_metrics,
-                points="all", 
-                color_discrete_sequence=["#6366f1"]
-            )
-            dist_fig.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#cbd5e1"),
-                xaxis_title="Metric",
-                yaxis_title="Score"
-            )
-            st.plotly_chart(dist_fig, use_container_width=True)
-            
-        # 2. Lowest Performing Samples (The "Why?")
-        st.markdown("#### 🚨 Failure Analysis (Lowest Scores)")
-        
-        sort_metric = st.selectbox("Find worst examples by:", options=selected_metrics)
-        
-        bad_examples = details_df.sort_values(sort_metric, ascending=True).head(5)
-        
-        for idx, row in bad_examples.iterrows():
-            with st.expander(f"❌ {sort_metric} = {row[sort_metric]:.4f} | Input: {str(row['user_input'])[:50]}..."):
-                c1, c2 = st.columns(2)
-                with c1:
-                    st.markdown("**User Input:**")
-                    st.info(row['user_input'])
-                    st.markdown("**Generated Response:**")
-                    st.warning(row['response'])
-                with c2:
-                    st.markdown("**Reference (Ground Truth):**")
-                    st.success(row['reference'])
-                    st.markdown("**Retrieved Context:**")
-                    st.code(str(row['retrieved_contexts'])[:500] + "...")
-                    
-        st.markdown("#### Full Dataset")
-        st.dataframe(details_df, use_container_width=True)
-            
-    else:
-        st.error("Detail CSV not found for this run.")
+        with col_dist:
+             st.markdown("**Score Distribution**")
+             if selected_metrics:
+                dist_fig = px.box(
+                    details_df, 
+                    y=selected_metrics,
+                    color_discrete_sequence=["#8b5cf6"]
+                )
+                dist_fig.update_layout(
+                    template="plotly_dark",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    height=300,
+                    margin=dict(l=0, r=0, t=0, b=0)
+                )
+                st.plotly_chart(dist_fig, use_container_width=True)
 
-# --- TAB 3: Compare ---
-with tab3:
-    col1, col2 = st.columns(2)
-    with col1:
-        base_run = st.selectbox("Base Run", history_df["run_id"], index=max(0, len(history_df)-2), key='base')
-    with col2:
-        comp_run = st.selectbox("Comparison Run", history_df["run_id"], index=len(history_df)-1, key='comp')
+        with col_worst:
+            st.markdown("**🚨 Critical Failures (Top 3)**")
+            if selected_metrics:
+                sort_metric = st.selectbox("Sort failures by:", options=selected_metrics, key="failure_sort")
+                bad_examples = details_df.sort_values(sort_metric, ascending=True).head(3)
+                
+                for i, row in bad_examples.iterrows():
+                     with st.expander(f"🔴 Score: {row[sort_metric]:.2f} | Q: {str(row['user_input'])[:60]}..."):
+                        c1, c2 = st.columns(2)
+                        with c1:
+                            st.caption("Prompt / Query")
+                            st.info(row['user_input'])
+                            st.caption("Model Response")
+                            st.warning(row['response'])
+                        with c2:
+                            st.caption("Reference Truth")
+                            st.success(row['reference'])
+                            st.caption("Retrieved Context")
+                            st.text_area("Context", value=str(row['retrieved_contexts'])[:400] + "...", height=100, disabled=True)
+
+        st.markdown("---")
+        st.markdown("**Full Trace Data**")
+        st.dataframe(details_df, use_container_width=True)
+    else:
+        st.warning("No detailed trace logs available for this run.")
+
+with tab_comp:
+    st.markdown("#### ⚔️ A/B Comparison")
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        base_run = st.selectbox("Base Baseline", history_df["run_id"], index=max(0, len(history_df)-2), key='base_sl')
+    with c2:
+        comp_run = st.selectbox("Challenger Model", history_df["run_id"], index=len(history_df)-1, key='comp_sl')
         
-    # Get Data
     run_base_data = history_df[history_df["run_id"] == base_run].iloc[0]
     run_comp_data = history_df[history_df["run_id"] == comp_run].iloc[0]
     
-    # Radar Chart Data
+    # 1. Delta Cards
+    st.markdown("<br>", unsafe_allow_html=True)
+    d_cols = st.columns(len(selected_metrics))
+    for i, m in enumerate(selected_metrics):
+        base_val = run_base_data.get(m, 0)
+        comp_val = run_comp_data.get(m, 0)
+        diff = comp_val - base_val
+        with d_cols[i]:
+            render_metric_card(m.replace("_", " "), f"{comp_val:.3f}", delta=diff, delta_text="vs Base")
+
+    # 2. Side by Side Chart
+    st.markdown("<br>", unsafe_allow_html=True)
     categories = selected_metrics
     val_base = [run_base_data[m] for m in categories]
     val_comp = [run_comp_data[m] for m in categories]
     
-    # 1. Radar Chart
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=val_base,
-        theta=categories,
-        fill='toself',
-        name=f'Base: {base_run}'
+    fig_comp = go.Figure()
+    fig_comp.add_trace(go.Bar(
+        x=categories,
+        y=val_base,
+        name=f"Base ({base_run})",
+        marker_color='#cbd5e1'
     ))
-    fig.add_trace(go.Scatterpolar(
-        r=val_comp,
-        theta=categories,
-        fill='toself',
-        name=f'Compare: {comp_run}'
+    fig_comp.add_trace(go.Bar(
+        x=categories,
+        y=val_comp,
+        name=f"Challenger ({comp_run})",
+        marker_color='#6366f1'
     ))
-    fig.update_layout(
-        polar=dict(
-            radialaxis=dict(visible=True, range=[0, 1])
-        ),
-        paper_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#cbd5e1"),
-        showlegend=True
+    
+    fig_comp.update_layout(
+         template="plotly_dark",
+         paper_bgcolor="rgba(0,0,0,0)",
+         plot_bgcolor="rgba(0,0,0,0)",
+         barmode='group',
+         height=400
     )
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # 2. Delta Table
-    delta_data = []
-    for m in categories:
-        delta_data.append({
-            "Metric": m,
-            f"{base_run}": run_base_data[m],
-            f"{comp_run}": run_comp_data[m],
-            "Delta": run_comp_data[m] - run_base_data[m]
-        })
-    
-    delta_df = pd.DataFrame(delta_data)
-    
-    def color_delta(val):
-        color = '#4ade80' if val > 0 else '#f87171' if val < 0 else '#94a3b8'
-        return f'color: {color}; font-weight: bold'
-    
-    st.table(delta_df.style.applymap(color_delta, subset=['Delta']))
+    st.plotly_chart(fig_comp, use_container_width=True)
