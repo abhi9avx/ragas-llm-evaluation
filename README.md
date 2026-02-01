@@ -37,7 +37,7 @@ graph LR
     subgraph Generation_Phase
         D -->|Input| G[Prompt Template]
         F -->|Input| G
-        G -->|Generate| H[LLM (GPT-4)]
+        G -->|Generate| H["LLM (GPT-4)"]
         H -->|Output| I[Final Answer]
     end
     
