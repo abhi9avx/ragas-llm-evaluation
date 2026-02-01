@@ -488,6 +488,79 @@ Answer: "23 articles" → Correctness: 1.0 (correct)
 
 ---
 
+## 🎯 Metric 6: Topic Adherence
+
+### What It Measures
+**Does the LLM stay on topic during a multi-turn conversation?**
+
+Topic Adherence evaluates whether the chatbot's responses remain aligned with the initial user query or the agreed-upon topic throughout a conversation session. It detects if the model drifts away or gets distracted.
+
+### High-Level Design (HLD)
+
+```mermaid
+graph TD
+    A[Conversation History] 
+    
+    subgraph Turns
+        T1[User: Ask about Selenium]
+        T2[Bot: Selenium details]
+        T3[User: Ask about Python]
+        T4[Bot: Recipes for Pizza]
+    end
+    
+    A --> T1
+    A --> T2
+    A --> T3
+    A --> T4
+    
+    T4 -->|Analyze| B[Topic Analyzer]
+    
+    B -->|Check Intent| C{Is aligned?}
+    C -- Yes --> D[Score 1.0]
+    C -- No --> E[Score 0.0]
+    
+    style E fill:#FF6B6B,stroke:#333,stroke-width:3px,color:#000
+    style D fill:#90EE90,stroke:#333,stroke-width:3px,color:#000
+```
+
+### Low-Level Design (LLD)
+
+```mermaid
+classDiagram
+    class TopicAdherenceScore {
+        +LLM llm
+        +name: str
+        +ascore(messages)
+        -_extract_topics(messages)
+        -_compare_alignment(topics)
+    }
+    
+    class TopicExtractor {
+        +extract(text)
+        +return: List[str]
+    }
+    
+    class AlignmentChecker {
+        +check(topic1, topic2)
+        +return: bool
+    }
+    
+    TopicAdherenceScore --> TopicExtractor: Uses
+    TopicAdherenceScore --> AlignmentChecker: Uses
+```
+
+### Formula
+```
+Topic Adherence = (Turns On-Topic) / (Total Turns)
+
+Example:
+Total Turns: 5
+Off-Topic Turns: 1
+Score = 4/5 = 0.8
+```
+
+---
+
 ## 🔄 Complete Evaluation Pipeline
 
 ### System Architecture
@@ -540,7 +613,8 @@ graph TD
 | **Context Recall** | Query + Retrieved Docs + Ground Truth | Completeness of retrieval | Ensure nothing missed | ✅ Test2.py, Test3.py |
 | **Faithfulness** | Response + Retrieved Context | Groundedness (no hallucinations) | Detect made-up facts | ✅ Test4.py |
 | **Answer Relevance** | Query + Response | On-topic answer | Check answer quality | ✅ Test5.py |
-| **Factual Correctness** | Response + Ground Truth | Factual accuracy | End-to-end validation | ✅ Test5.py |
+| **Factual Correctness** | Response + Ground Truth | Factual accuracy | End-to-End validation | ✅ Test5.py |
+| **Topic Adherence** | Messages + Reference | Stays on topic? | Multi-Turn Consistency | ✅ Test6.py |
 
 ---
 
